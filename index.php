@@ -37,7 +37,8 @@ session_start();
 
     $username = $cHandler = $bdHandler = $cBookings = null;
     $isSessionExists = false;
-    $isAdmin = [];
+    // default: not authenticated / not admin
+    $isAdmin = [0, "false"];
     if (isset($_SESSION["username"])) {
         $username = $_SESSION["username"];
 
@@ -49,7 +50,7 @@ session_start();
         $bdHandler = new BookingDetailHandler();
         $cBookings = $bdHandler->getCustomerBookings($cHandler);
         $isSessionExists = true;
-        $isAdmin = $_SESSION["authenticated"];
+        $isAdmin = isset($_SESSION["authenticated"]) ? $_SESSION["authenticated"] : $isAdmin;
     }
     if (isset($_SESSION["isAdmin"]) && isset($_SESSION["username"])) {
         $isSessionExists = true;

@@ -177,6 +177,25 @@ session_start();
         </ul>
         <div class="tab-content py-3" id="adminTabContent">
             <div class="tab-pane fade show active" id="reservation" role="tabpanel" aria-labelledby="reservation-tab">
+                <div class="d-flex justify-content-end mb-2">
+                    <button id="print-reservation" class="btn btn-outline-secondary btn-sm">Print Reservation Report</button>
+                </div>
+                <div id="reservationSummary" class="mb-3" style="display: none;">
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <th>Total reservations:</th>
+                            <td><?php echo isset($totalReservations) ? $totalReservations : 0; ?></td>
+                        </tr>
+                        <tr>
+                            <th>Confirmed:</th>
+                            <td><?php echo isset($confirmedReservation) ? $confirmedReservation : 0; ?></td>
+                        </tr>
+                        <tr>
+                            <th>Pending:</th>
+                            <td><?php echo isset($pendingReservation) ? $pendingReservation : 0; ?></td>
+                        </tr>
+                    </table>
+                </div>
                 <table id="reservationDataTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
                     <thead>
                     <tr>
@@ -231,6 +250,17 @@ session_start();
                 </div>
             </div>
             <div class="tab-pane fade" id="customers" role="tabpanel" aria-labelledby="customers-tab">
+                <div class="d-flex justify-content-end mb-2">
+                    <button id="print-customers" class="btn btn-outline-secondary btn-sm">Print Customers Report</button>
+                </div>
+                <div id="customersSummary" class="mb-3" style="display: none;">
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <th>Total customers:</th>
+                            <td><?php echo isset($totalCustomers) ? $totalCustomers : 0; ?></td>
+                        </tr>
+                    </table>
+                </div>
                 <table id="customerTable" class="table table-bordered">
                     <thead class="thead-dark">
                     <tr>
@@ -318,5 +348,87 @@ session_start();
 <script src="https://cdn.datatables.net/select/1.2.5/js/dataTables.select.min.js"></script>
 <script src="js/form-submission.js"></script>
 <script src="js/admin.js"></script>
+
+<script>
+  // Print button handlers
+  document.addEventListener('DOMContentLoaded', function () {
+    // Print Reservation Report
+    var printReservationBtn = document.getElementById('print-reservation');
+    if (printReservationBtn) {
+      printReservationBtn.addEventListener('click', function () {
+        printTable('reservationReport');
+      });
+    }
+    
+    // Print Customers Report
+    var printCustomersBtn = document.getElementById('print-customers');
+    if (printCustomersBtn) {
+      printCustomersBtn.addEventListener('click', function () {
+        printTable('customersReport');
+      });
+    }
+  });
+  
+    // Function to print specific report (includes summary + full data)
+    function printTable(reportType) {
+        var printWindow = window.open('', '', 'height=700,width=1000');
+        var content = '';
+        var title = '';
+        var table = '';
+        var summaryHtml = '';
+
+        if (reportType === 'reservationReport') {
+            title = 'Reservation Report';
+            var tbl = document.getElementById('reservationDataTable');
+            table = tbl ? tbl.outerHTML : '<p>No reservation data available.</p>';
+            var sum = document.getElementById('reservationSummary');
+            summaryHtml = sum ? sum.innerHTML : '';
+        } else if (reportType === 'customersReport') {
+            title = 'Customers Report';
+            var ctbl = document.getElementById('customerTable');
+            table = ctbl ? ctbl.outerHTML : '<p>No customer data available.</p>';
+            var csum = document.getElementById('customersSummary');
+            summaryHtml = csum ? csum.innerHTML : '';
+        }
+
+        var today = new Date().toLocaleString();
+        content = `
+            <html>
+                <head>
+                    <title>${title}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; color: #222; }
+                        h2 { text-align: center; color: #333; margin-bottom: 6px; }
+                        .report-info { text-align: center; margin-bottom: 6px; font-size: 12px; color: #666; }
+                        .summary-box { width: 100%; margin-top: 12px; }
+                        .summary-box table { width: auto; border-collapse: collapse; }
+                        .summary-box th { text-align: left; padding-right: 12px; color: #333; }
+                        .summary-box td { color: #222; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+                        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+                        th { background-color: #f8f9fa; font-weight: bold; }
+                        tr:nth-child(even) { background-color: #f9f9f9; }
+                        @media print {
+                            body { margin: 0; padding: 10px; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h2>${title}</h2>
+                    <div class="report-info">Generated on: ${today}</div>
+                    <div class="summary-box">${summaryHtml}</div>
+                    ${table}
+                    <script>
+                        window.print();
+                        window.close();
+                    <\/script>
+                </body>
+            </html>
+        `;
+
+        printWindow.document.write(content);
+        printWindow.document.close();
+    }
+</script>
 </body>
 </html>
